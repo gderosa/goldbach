@@ -1,7 +1,7 @@
 import pickle
 
-PRIMEFILE = 'primes.pkl'  # Default prime file
-UPPERLIMIT = 1_000_000  # Default upper limit
+PRIMEFILE = 'primes.pkl'
+UPPERLIMIT = 1_000_000_000
 
 class Goldbach:
     def __init__(self, primefile=PRIMEFILE, upper_limit=UPPERLIMIT):
@@ -10,7 +10,7 @@ class Goldbach:
         self.primes = [1, 2, 3]
 
     def is_prime(self, n):
-        for i in range(2, n):
+        for i in range(2, int(n**0.5) + 1):
             if n % i == 0:
                 return False
         return True
@@ -32,13 +32,17 @@ class Goldbach:
         while self.primes[-1] < n:
             self.next_prime()
 
-    def goldbach(self, n):
-        assert self.is_even(n)
+    def goldbach_pair(self, n):
         self.fill_primes(n)
-        for i in range(len(self.primes)):
-            for j in range(i, len(self.primes)):
-                if self.primes[i] + self.primes[j] == n:
-                    return [self.primes[i], self.primes[j]]
+        low, high = 0, len(self.primes) - 1
+        while low <= high:
+            total = self.primes[low] + self.primes[high]
+            if total == n:
+                return [self.primes[low], self.primes[high]]
+            elif total < n:
+                low += 1
+            else:
+                high -= 1
         return None
 
     def deserialize_primes(self):
@@ -59,9 +63,9 @@ class Goldbach:
     def run(self):
         self.deserialize_primes()
         for i in range(self.primes[-1] + 1, self.upper_limit, 2):
-            result = self.goldbach(i)
+            result = self.goldbach_pair(i)
             if result:
-                if i % 1000 == 0:
+                if i % 50_000 == 0:
                     print(f"{i} = {result[0]} + {result[1]}")
             else:
                 print(f"No Goldbach pair found for {i}")
@@ -73,6 +77,8 @@ if __name__ == '__main__':
     try:
         goldbach.run()
     except KeyboardInterrupt:
-        print("\rProgram interrupted. Saving primes...")
+        print("\rProgram interrupted.")
+    finally:
+        print("Saving primes...")
         goldbach.serialize_primes()
         print(f"Primes saved in {goldbach.primefile}.")
