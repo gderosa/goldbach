@@ -1,18 +1,12 @@
 import pickle
 
-PRIMEFILE = 'primes.pkl'
-UPPERLIMIT = 1_000_000
+PRIMEFILE = 'primes.pkl'  # Default prime file
+UPPERLIMIT = 1_000_000  # Default upper limit
 
-# This script finds Goldbach pairs for odd numbers starting from the last prime found.
-# It uses a brute-force method to find the pairs.
-# It also serializes the primes found to a file for future use.
-# The script will continue from the last prime found in the file.
-# It will also handle exceptions and save the state of the primes to a file.
-# The script will run indefinitely until interrupted.
-# The script will print the Goldbach pairs found for every 1000 odd numbers.
-
-class GoldbachWorkspace:
-    def __init__(self):
+class Goldbach:
+    def __init__(self, primefile=PRIMEFILE, upper_limit=UPPERLIMIT):
+        self.primefile = primefile
+        self.upper_limit = upper_limit
         self.primes = [1, 2, 3]
 
     def is_prime(self, n):
@@ -26,7 +20,6 @@ class GoldbachWorkspace:
         while not self.is_prime(n):
             n += 1
         self.primes.append(n)
-        # print(f"Found prime: {n}")
         return n
 
     def is_even(self, n):
@@ -50,7 +43,7 @@ class GoldbachWorkspace:
 
     def deserialize_primes(self):
         try:
-            with open(PRIMEFILE, 'rb') as f:
+            with open(self.primefile, 'rb') as f:
                 self.primes = pickle.load(f)
         except FileNotFoundError:
             print("No primes file found, starting fresh.")
@@ -60,12 +53,12 @@ class GoldbachWorkspace:
             self.primes = [1, 2, 3]
 
     def serialize_primes(self):
-        with open(PRIMEFILE, 'wb') as f:
+        with open(self.primefile, 'wb') as f:
             pickle.dump(self.primes, f)
 
-    def run(self, upper_limit=UPPERLIMIT):
+    def run(self):
         self.deserialize_primes()
-        for i in range(self.primes[-1] + 1, upper_limit, 2):
+        for i in range(self.primes[-1] + 1, self.upper_limit, 2):
             result = self.goldbach(i)
             if result:
                 if i % 1000 == 0:
@@ -76,14 +69,10 @@ class GoldbachWorkspace:
 
 
 if __name__ == '__main__':
-    workspace = GoldbachWorkspace()
+    goldbach = Goldbach(primefile=PRIMEFILE, upper_limit=UPPERLIMIT)
     try:
-        workspace.run()
+        goldbach.run()
     except KeyboardInterrupt:
         print("\rProgram interrupted. Saving primes...")
-        workspace.serialize_primes()
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        exit(1)
-    finally:
-        print("Exiting the program.")
+        goldbach.serialize_primes()
+        print(f"Primes saved in {goldbach.primefile}.")
