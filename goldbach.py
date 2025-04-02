@@ -1,13 +1,13 @@
+from itertools import count
 import pickle
 
+PRIMES_INITIAL = [1, 2, 3]
 PRIMEFILE = 'primes.pkl'
-UPPERLIMIT = 1_000_000_000
 
 class Goldbach:
-    def __init__(self, primefile=PRIMEFILE, upper_limit=UPPERLIMIT):
+    def __init__(self, primefile=PRIMEFILE):
         self.primefile = primefile
-        self.upper_limit = upper_limit
-        self.primes = [1, 2, 3]
+        self.primes = PRIMES_INITIAL
 
     def is_prime(self, n):
         for i in range(2, int(n**0.5) + 1):
@@ -51,10 +51,10 @@ class Goldbach:
                 self.primes = pickle.load(f)
         except FileNotFoundError:
             print("No primes file found, starting fresh.")
-            self.primes = [1, 2, 3]
+            self.primes = PRIMES_INITIAL
         except (ValueError, pickle.UnpicklingError):
             print("Error reading primes file, starting fresh.")
-            self.primes = [1, 2, 3]
+            self.primes = PRIMES_INITIAL
 
     def serialize_primes(self):
         with open(self.primefile, 'wb') as f:
@@ -62,7 +62,7 @@ class Goldbach:
 
     def run(self):
         self.deserialize_primes()
-        for i in range(self.primes[-1] + 1, self.upper_limit, 2):
+        for i in count(start=(self.primes[-1] + 1), step=2):
             result = self.goldbach_pair(i)
             if result:
                 if i % 50_000 == 0:
@@ -73,7 +73,7 @@ class Goldbach:
 
 
 if __name__ == '__main__':
-    goldbach = Goldbach(primefile=PRIMEFILE, upper_limit=UPPERLIMIT)
+    goldbach = Goldbach(primefile=PRIMEFILE)
     try:
         goldbach.run()
     except KeyboardInterrupt:
